@@ -1,7 +1,3 @@
-variables:
-    # dvhoang2408/bookshop:jhsakjd
-  DOCKER_IMAGE: ${REGISTRY_USER}/${REGISTRY_PROJECT}:${CI_COMMIT_SHORT_SHA}
-  DOCKER_CONTAINER: ${CI_PROJECT_NAME}
 stages: 
   - build
   - deploy
@@ -10,29 +6,26 @@ build:
   stage: build
   variables: 
     GIT_STRATEGY: clone
-  before_script: 
-    - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD}
   script: 
-    - docker build -t $DOCKER_IMAGE .
-    - docker push $DOCKER_IMAGE 
+    - npm ci
+    - npm run build
   tags: 
     - dev-server
 deploy: 
   stage: deploy
   variables: 
     GIT_STRATEGY: none
-  before_script: 
-     - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD}
   script: 
-    - docker pull $DOCKER_IMAGE
-    - docker rm -f ${DOCKER_CONTAINER}
-    - docker run --name ${DOCKER_CONTAINER} -d -p 3000:3000 ${DOCKER_IMAGE}
+    - sudo cp -rf dist/ /data/bookshop/
+    - sudo cp -rf node_modules/ /data/bookshop/
+    - sudo chown -R bookshop /data/bookshop
+    - sudo su bookshop -c "kill -9 $(ps -ef | grep  dist/main.js | grep -v grep | awk '{print $2}')"
+    - sudo su bookshop -c "cd /data/bookshop; nohup node dist/main.js > log.out 2>&1 &"
   tags: 
     - dev-server
 showlog: 
     stage: showlog
     script: 
-      - sleep 20
-      - docker logs ${DOCKER_CONTAINER}
+      - sudo su bookshop -c "tail -n 100 /data/bookshop/log.out"
     tags: 
       - dev-server
