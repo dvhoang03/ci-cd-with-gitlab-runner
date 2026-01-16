@@ -1,0 +1,38 @@
+variables:
+    # dvhoang2408/bookshop:jhsakjd
+  DOCKER_IMAGE: ${REGISTRY_USER}/${REGISTRY_PROJECT}:${CI_COMMIT_SHORT_SHA}
+  DOCKER_CONTAINER: ${CI_PROJECT_NAME}
+stages: 
+  - build
+  - deploy
+  - showlog
+build: 
+  stage: build
+  variables: 
+    GIT_STRATEGY: clone
+  before_script: 
+    - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD}
+  script: 
+    - docker build -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE 
+  tags: 
+    - dev-server
+deploy: 
+  stage: deploy
+  variables: 
+    GIT_STRATEGY: none
+  before_script: 
+     - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD}
+  script: 
+    - docker pull $DOCKER_IMAGE
+    - docker rm -f ${DOCKER_CONTAINER}
+    - docker run --name ${DOCKER_CONTAINER} -d -p 3000:3000 ${DOCKER_IMAGE}
+  tags: 
+    - dev-server
+showlog: 
+    stage: showlog
+    script: 
+      - sleep 20
+      - docker logs ${DOCKER_CONTAINER}
+    tags: 
+      - dev-server

@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+
+# Build artifacts
+dist
+# Nếu có các thư mục build khác
+
+# Docker specific files
+Dockerfile
+.dockerignore
+
+# Git repository files
+.git
+.gitignore
+
+# Environment variables file (không bao giờ đưa vào image!)
+.env*
+
+# Logs
+logs
+*.log
+
+# OS generated files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
